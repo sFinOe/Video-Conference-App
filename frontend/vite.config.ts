@@ -9,6 +9,9 @@ export default defineConfig({
       "@tabler/icons-react": "@tabler/icons-react/dist/esm/icons/index.mjs",
     },
   },
+  server: {
+    host: "0.0.0.0",
+  },
   preview: {
     port: 80,
   },
