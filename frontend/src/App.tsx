@@ -6,8 +6,8 @@ import Home from "./pages/Home";
 import Room from "./pages/Room";
 import "@mantine/core/styles.css";
 
-// socket connection
-const socket = io("http://localhost:3000");
+// socket connection using environment variable
+const socket = io(import.meta.env.API_URL || "http://localhost:3000");
 
 function App() {
   const theme = createTheme({

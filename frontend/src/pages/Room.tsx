@@ -104,7 +104,7 @@ function Room({ socket }: { socket: Socket }) {
     if (!localStream) return;
 
     const peer = new Peer({
-      host: "localhost",
+      host: import.meta.env.PEER_URL || "localhost",
       port: 3000,
       path: "/peerjs",
     });
