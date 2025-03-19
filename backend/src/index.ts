@@ -1,0 +1,93 @@
+import express from "express";
+import cors from "cors";
+import { ExpressPeerServer } from "peer";
+import { Server } from "socket.io";
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+
+// Store rooms and peers
+
+const rooms: { [key: string]: { name: string; peerId: string }[] } = {};
+
+const server = app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+const peerServer = ExpressPeerServer(server, {
+  path: "/",
+});
+
+app.use("/peerjs", peerServer);
+
+// Track peer connections
+peerServer.on("connection", (client) => {
+  console.log(`Peer connected: ${client.getId()}`);
+});
+
+peerServer.on("disconnect", (client) => {
+  console.log(`Peer disconnected: ${client.getId()}`);
+
+  // Remove peer from all rooms
+  for (const roomId in rooms) {
+    if (rooms[roomId].some((id) => id.peerId === client.getId())) {
+      rooms[roomId] = rooms[roomId].filter((id) => id.peerId !== client.getId());
+
+      // Notify other peers in the room about the disconnection
+      io.to(roomId).emit("peer-left", { peerId: client.getId() });
+
+      // If the room is empty, delete it
+      if (rooms[roomId].length === 0) {
+        delete rooms[roomId];
+      }
+    }
+  }
+});
+
+// Socket.IO connection handler
+
+io.on("connection", (socket) => {
+  socket.on("join-room", (payload: { roomId: string; peerId: string; name: string }) => {
+    const { roomId, peerId, name } = payload;
+
+    if (!roomId || !peerId) {
+      console.log("No roomId or peerId");
+      return;
+    }
+
+    // Create room if it doesn't exist
+    if (!rooms[roomId]) {
+      rooms[roomId] = [];
+    }
+
+    // Add peer to room
+    if (!rooms[roomId].includes({ name, peerId })) {
+      rooms[roomId].push({ name, peerId });
+    }
+
+    console.log(`Peer ${peerId} joined room ${roomId}`);
+    console.log("Current rooms:", rooms);
+
+    // Join the room
+    socket.join(roomId);
+
+    // Send room details to the new peer
+    socket.emit("room-details", {
+      roomId,
+      peers: rooms[roomId].filter((id) => id.peerId !== peerId),
+    });
+
+    // Notify other peers in the room about the new peer
+    socket.to(roomId).emit("peer-joined", { peerId, name });
+  });
+});
