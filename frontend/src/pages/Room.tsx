@@ -67,11 +67,13 @@ function Room({ socket }: { socket: Socket }) {
       // replace the screen track with the original camera track on all connections
       Object.keys(connections.current).forEach((peerId) => {
         try {
-          const peerConnection = peerInstance.current?.connections[peerId][0]?.peerConnection;
+          // Type assertion for connections
+          const peerConnections = peerInstance.current?.connections as unknown as { [key: string]: { peerConnection: RTCPeerConnection }[] };
+          const peerConnection = peerConnections?.[peerId]?.[0]?.peerConnection;
 
           if (peerConnection) {
             const senders = peerConnection.getSenders();
-            const videoSender = senders.find((sender) => sender.track && sender.track.kind === "video");
+            const videoSender = senders.find((sender: RTCRtpSender) => sender.track && sender.track.kind === "video");
 
             if (videoSender) {
               videoSender.replaceTrack(originalVideoTrack);
@@ -350,12 +352,14 @@ function Room({ socket }: { socket: Socket }) {
         if (peerInstance.current) {
           const videoTrack = screenStream.getVideoTracks()[0];
 
-          Object.keys(connections.current).forEach((peerId) => {
+          // Type assertion for connections
+          const peerConnections = peerInstance.current?.connections as unknown as { [key: string]: { peerConnection: RTCPeerConnection }[] };
+          Object.keys(peerConnections).forEach((peerId) => {
             try {
-              const peerConnection = peerInstance.current?.connections[peerId][0]?.peerConnection;
+              const peerConnection = peerConnections?.[peerId]?.[0]?.peerConnection;
               if (peerConnection) {
                 const senders = peerConnection.getSenders();
-                const videoSender = senders.find((sender) => sender.track && sender.track.kind === "video");
+                const videoSender = senders.find((sender: RTCRtpSender) => sender.track && sender.track.kind === "video");
 
                 if (videoSender) {
                   videoSender.replaceTrack(videoTrack);
@@ -540,7 +544,7 @@ function Room({ socket }: { socket: Socket }) {
         setCurrentMessage={setCurrentMessage}
         sendMessage={sendChatMessage}
         formatTime={formatTime}
-        chatScrollRef={chatScrollRef}
+        chatScrollRef={chatScrollRef as React.RefObject<HTMLDivElement>}
         theme={theme}
         myPeerId={myPeerId}
       />
