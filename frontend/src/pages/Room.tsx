@@ -105,7 +105,7 @@ function Room({ socket }: { socket: Socket }) {
 
     const peer = new Peer({
       host: import.meta.env.PEER_URL || "localhost",
-      port: 3000,
+      port: import.meta.env.API_PORT || 3000,
       path: "/peerjs",
     });
 

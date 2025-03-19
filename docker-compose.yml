@@ -13,15 +13,16 @@ services:
     depends_on:
       - video-conferencing-backend
     environment:
-      - API_URL=http://video-conferencing-backend:3000
+      - API_URL=http://video-conferencing-backend:4000
       - PEER_URL=http://video-conferencing-backend
+      - API_PORT=4000
 
   video-conferencing-backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     volumes:
       - ./backend:/app
       - /app/node_modules
+    environment:
+      - API_PORT=4000
