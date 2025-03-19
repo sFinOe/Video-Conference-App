@@ -9,8 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Store rooms and peers
-
+// store rooms and peers
 const rooms: { [key: string]: { name: string; peerId: string }[] } = {};
 
 const server = app.listen(PORT, () => {
@@ -30,7 +29,6 @@ const peerServer = ExpressPeerServer(server, {
 
 app.use("/peerjs", peerServer);
 
-// Track peer connections
 peerServer.on("connection", (client) => {
   console.log(`Peer connected: ${client.getId()}`);
 });
@@ -38,15 +36,15 @@ peerServer.on("connection", (client) => {
 peerServer.on("disconnect", (client) => {
   console.log(`Peer disconnected: ${client.getId()}`);
 
-  // Remove peer from all rooms
+  // remove peer from all rooms
   for (const roomId in rooms) {
     if (rooms[roomId].some((id) => id.peerId === client.getId())) {
       rooms[roomId] = rooms[roomId].filter((id) => id.peerId !== client.getId());
 
-      // Notify other peers in the room about the disconnection
+      // notify other peers in the room about the disconnection
       io.to(roomId).emit("peer-left", { peerId: client.getId() });
 
-      // If the room is empty, delete it
+      // if the room is empty, delete it
       if (rooms[roomId].length === 0) {
         delete rooms[roomId];
       }
@@ -55,7 +53,6 @@ peerServer.on("disconnect", (client) => {
 });
 
 // Socket.IO connection handler
-
 io.on("connection", (socket) => {
   socket.on("join-room", (payload: { roomId: string; peerId: string; name: string }) => {
     const { roomId, peerId, name } = payload;
@@ -65,12 +62,12 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Create room if it doesn't exist
+    // create room if it doesn't exist
     if (!rooms[roomId]) {
       rooms[roomId] = [];
     }
 
-    // Add peer to room
+    // add peer to room
     if (!rooms[roomId].includes({ name, peerId })) {
       rooms[roomId].push({ name, peerId });
     }
@@ -78,16 +75,28 @@ io.on("connection", (socket) => {
     console.log(`Peer ${peerId} joined room ${roomId}`);
     console.log("Current rooms:", rooms);
 
-    // Join the room
+    // join the room
     socket.join(roomId);
 
-    // Send room details to the new peer
+    // send room details to the new peer
     socket.emit("room-details", {
       roomId,
       peers: rooms[roomId].filter((id) => id.peerId !== peerId),
     });
 
-    // Notify other peers in the room about the new peer
+    // notify other peers in the room about the new peer
     socket.to(roomId).emit("peer-joined", { peerId, name });
+  });
+
+  socket.on("media-state-change", (payload: { roomId: string; peerId: string; videoEnabled: boolean; audioEnabled: boolean }) => {
+    const { roomId, peerId, videoEnabled, audioEnabled } = payload;
+
+    socket.to(roomId).emit("media-state-change", { peerId, videoEnabled, audioEnabled });
+  });
+
+  socket.on("send-chat-message", (payload: { roomId: string; senderId: string; senderName: string; content: string }) => {
+    const { roomId, senderId, senderName, content } = payload;
+
+    socket.to(roomId).emit("chat-message", { senderId, senderName, content, timestamp: new Date().toISOString() });
   });
 });

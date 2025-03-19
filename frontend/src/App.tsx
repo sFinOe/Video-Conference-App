@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Room from "./pages/Room";
 import "@mantine/core/styles.css";
 
+// socket connection
 const socket = io("http://localhost:3000");
 
 function App() {

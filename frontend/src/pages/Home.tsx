@@ -8,6 +8,7 @@ function Home() {
   const [roomId, setRoomId] = useState("");
   const navigate = useNavigate();
 
+  // generate random room id
   const generateRandomRoomId = () => {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let result = "";
@@ -17,6 +18,7 @@ function Home() {
     setRoomId(result);
   };
 
+  // join room
   const joinRoom = () => {
     if (name && roomId) {
       navigate("/room", { state: { name, roomId } });
