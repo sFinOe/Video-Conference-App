@@ -2,22 +2,22 @@ version: "3.8"
 
 services:
   video-conferencing-frontend:
+    container_name: video-conferencing-frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     depends_on:
       - video-conferencing-backend
     environment:
       - API_URL=http://video-conferencing-backend:4000
       - PEER_URL=http://video-conferencing-backend
       - API_PORT=4000
+    restart: always
 
   video-conferencing-backend:
+    container_name: video-conferencing-backend
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -26,3 +26,4 @@ services:
       - /app/node_modules
     environment:
       - API_PORT=4000
+    restart: always
