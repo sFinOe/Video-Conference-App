@@ -7,7 +7,7 @@ import Room from "./pages/Room";
 import "@mantine/core/styles.css";
 
 // socket connection using environment variable
-const socket = io(import.meta.env.API_URL || "http://localhost:3000");
+const socket = io(import.meta.env.VITE_API_URL || "http://localhost:3000");
 
 function App() {
   const theme = createTheme({
