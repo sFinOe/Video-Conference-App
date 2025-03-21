@@ -14,5 +14,6 @@ export default defineConfig({
   },
   preview: {
     port: 80,
+    allowedHosts: ["*"],
   },
 });
