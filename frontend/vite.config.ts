@@ -14,6 +14,6 @@ export default defineConfig({
   },
   preview: {
     port: 80,
-    allowedHosts: ["*"],
+    allowedHosts: ["demo.devube.com"],
   },
 });
