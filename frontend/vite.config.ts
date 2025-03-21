@@ -13,6 +13,6 @@ export default defineConfig({
     host: "0.0.0.0",
   },
   preview: {
-    port: 8080,
+    port: 80,
   },
 });
